@@ -1,83 +1,174 @@
 ﻿@model IEnumerable<Book>
 
 @{
-    ViewData["Title"] = "Index";
+ViewData["Title"] = "Książki";
+
+// Prosta lista kategorii wyciągnięta z modeli – tylko do wyświetlenia po lewej
+var categories = Model
+.Select(b => b.Category?.Name ?? "Brak kategorii")
+.Distinct()
+.OrderBy(n => n)
+.ToList();
 }
 
-<h1>Index</h1>
+<div class="d-flex min-vh-100 bg-light">
+    <!-- LEWE MENU (sidebar jak na makiecie) -->
+    <aside class="d-none d-md-flex flex-column justify-content-between bg-white border-end px-3 py-4" style="width: 260px;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                    <span class="fw-bold">BR</span>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="fw-semibold">Admin Panel</span>
+                    <small class="text-muted">Book Rental System</small>
+                </div>
+            </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Author)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Isbn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TableOfContentsExcerpt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AddedDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsNew)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StockCount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Author)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Isbn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TableOfContentsExcerpt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AddedDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsNew)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StockCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+            <nav class="nav flex-column gap-1">
+                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Books" asp-action="Index">
+                    <i class="bi bi-book"></i> Books
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Categories" asp-action="Index">
+                    <i class="bi bi-grid"></i> Kategorie
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Rentals" asp-action="Index">
+                    <i class="bi bi-journal-arrow-down"></i> Rentals
+                </a>
+                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Users" asp-action="Index">
+                    <i class="bi bi-people"></i> Users
+                </a>
+            </nav>
+        </div>
+
+        <div class="border-top pt-3">
+            <a class="nav-link d-flex align-items-center gap-2 text-muted" href="#">
+                <i class="bi bi-gear"></i> Settings
+            </a>
+            <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-area="Identity" asp-page="/Account/Logout">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- PRAWA STRONA (główna zawartość) -->
+    <main class="flex-grow-1 p-3 p-md-4 p-lg-5">
+        <!-- Nagłówek strony -->
+        <header class="mb-4">
+            <h1 class="h3 fw-bold mb-1">Zarządzanie książkami</h1>
+            <p class="text-muted mb-0">Przeglądaj, dodawaj i edytuj książki w systemie.</p>
+        </header>
+
+        <!-- Główna karta: lewa kolumna z kategoriami, prawa z listą książek -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row g-4">
+
+                    <!-- LEWA KOLUMNA – Kategorie książek (jak na screenie) -->
+                    <div class="col-12 col-lg-4 border-end">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="h6 fw-semibold mb-0">Kategorie książek</h2>
+                            <a asp-controller="Categories" asp-action="Create" class="btn btn-primary btn-sm">
+                                + Nowa
+                            </a>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-0">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 bg-light" placeholder="Szukaj kategorii..." />
+                            </div>
+                        </div>
+
+                        <div class="list-group small">
+                            @foreach (var cat in categories)
+                            {
+                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <span>@cat</span>
+                                <i class="bi bi-chevron-down small text-muted"></i>
+                            </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- PRAWA KOLUMNA – Lista książek (twoja logika Index) -->
+                    <div class="col-12 col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h2 class="h6 fw-semibold mb-1">
+                                    Książki w systemie
+                                    <span class="text-muted">(@Model.Count())</span>
+                                </h2>
+                                <p class="text-muted small mb-0">
+                                    Lista wszystkich książek – możesz je edytować, zobaczyć szczegóły lub usunąć.
+                                </p>
+                            </div>
+                            <a asp-action="Create" class="btn btn-primary btn-sm">
+                                + Dodaj książkę
+                            </a>
+                        </div>
+
+                        <!-- TABELA – zachowuje całą twoją logikę -->
+                        <div class="table-responsive rounded-3 border bg-white">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                                    <th>@Html.DisplayNameFor(model => model.Author)</th>
+                                    <th>@Html.DisplayNameFor(model => model.Isbn)</th>
+                                    <th>@Html.DisplayNameFor(model => model.AddedDate)</th>
+                                    <th>@Html.DisplayNameFor(model => model.Category)</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var item in Model)
+                                {
+                                <tr>
+                                    <td class="fw-semibold">
+                                        @Html.DisplayFor(modelItem => item.Title)
+                                        @if (item.IsNew)
+                                        {
+                                        <span class="badge bg-primary-subtle text-primary ms-1">Nowość</span>
+                                        }
+                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.Author)</td>
+                                    <td class="text-muted small">
+                                        @Html.DisplayFor(modelItem => item.Isbn)
+                                    </td>
+                                    <td class="text-muted small">
+                                        @Html.DisplayFor(modelItem => item.AddedDate)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Category.Name)
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
