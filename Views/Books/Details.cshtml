@@ -64,6 +64,19 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Category.Name)
         </dd>
+        <dt class = "col-sm-2">
+            Tags
+        </dt>
+        <dd class = "col-sm-10">
+            @if (Model.BookTags != null && Model.BookTags.Any())
+            {
+                @string.Join(", ", Model.BookTags.Select(bt => bt.Tag?.Name))
+            }
+            else
+            {
+                <em>No tags</em>
+            }
+        </dd>
     </dl>
 </div>
 <div>

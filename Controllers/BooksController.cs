@@ -34,6 +34,8 @@ namespace Biblioteka.Controllers
 
             var book = await _context.Books
                 .Include(b => b.Category)
+                .Include(b => b.BookTags)
+                    .ThenInclude(bt => bt.Tag)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {
@@ -47,6 +49,7 @@ namespace Biblioteka.Controllers
         public IActionResult Create()
         {
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name");
             return View();
         }
 
@@ -55,15 +58,26 @@ namespace Biblioteka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book)
+        public async Task<IActionResult> Create([Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book, int[] selectedTags)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(book);
                 await _context.SaveChangesAsync();
+
+                if (selectedTags != null && selectedTags.Length > 0)
+                {
+                    foreach (var tagId in selectedTags)
+                    {
+                        _context.BookTags.Add(new BookTag { BookId = book.Id, TagId = tagId });
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);
             return View(book);
         }
 
@@ -81,6 +95,10 @@ namespace Biblioteka.Controllers
                 return NotFound();
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+
+            var selectedTagIds = _context.BookTags.Where(bt => bt.BookId == book.Id).Select(bt => bt.TagId).ToList();
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTagIds);
+
             return View(book);
         }
 
@@ -89,7 +107,7 @@ namespace Biblioteka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book, int[] selectedTags)
         {
             if (id != book.Id)
             {
@@ -101,6 +119,18 @@ namespace Biblioteka.Controllers
                 try
                 {
                     _context.Update(book);
+                    await _context.SaveChangesAsync();
+
+                    // update tags: remove existing and add selected
+                    var existing = _context.BookTags.Where(bt => bt.BookId == book.Id);
+                    _context.BookTags.RemoveRange(existing);
+                    if (selectedTags != null && selectedTags.Length > 0)
+                    {
+                        foreach (var tagId in selectedTags)
+                        {
+                            _context.BookTags.Add(new BookTag { BookId = book.Id, TagId = tagId });
+                        }
+                    }
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -117,6 +147,7 @@ namespace Biblioteka.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", book.CategoryId);
+            ViewData["Tags"] = new MultiSelectList(_context.Tags, "Id", "Name", selectedTags);
             return View(book);
         }
 

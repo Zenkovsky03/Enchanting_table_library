@@ -57,10 +57,13 @@ namespace Biblioteka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BookId,UserId,Status,CreatedAt,BorrowedAt,ReturnedAt,DueDate")] Loan loan)
+        public async Task<IActionResult> Create([Bind("Id,BookId,UserId,Status,BorrowedAt,ReturnedAt,DueDate")] Loan loan)
         {
             if (ModelState.IsValid)
             {
+                // Ensure server-side CreatedAt is set instead of relying on form input
+                loan.CreatedAt = DateTime.UtcNow;
+
                 _context.Add(loan);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

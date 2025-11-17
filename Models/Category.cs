@@ -31,7 +31,7 @@ public class Tag
     [Required]
     [StringLength(50)]
     public string Name { get; set; }
-
+    [ValidateNever]
     public ICollection<BookTag> BookTags { get; set; }
 }
 

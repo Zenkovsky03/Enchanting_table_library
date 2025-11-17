@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 
 public enum LoanStatus
 {
-    InStock = 0,   // książka w magazynie (jeszcze nie na półce czytelnika)
-    OnHold = 1,    // oczekuje na odbiór (na półce czytelnika)
-    Borrowed = 2,  // wypożyczona
-    Returned = 3,  // zwrócona
-    Cancelled = 4  // anulowana rezerwacja
+    InStock = 0,
+    OnHold = 1,
+    Borrowed = 2,
+    Returned = 3,
+    Cancelled = 4  
 }
 
 public class Loan
@@ -17,18 +18,25 @@ public class Loan
 
     [Required]
     public int BookId { get; set; }
-    public Book Book { get; set; }
+
+    [ValidateNever]
+    public Book? Book { get; set; }
 
     [Required]
     public string UserId { get; set; }
-    public ApplicationUser User { get; set; }
+
+    [ValidateNever]
+    public ApplicationUser? User { get; set; }
 
     public LoanStatus Status { get; set; } = LoanStatus.InStock;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // złożenie zamówienia
-    public DateTime? BorrowedAt { get; set; }                  // faktyczne wypożyczenie
-    public DateTime? ReturnedAt { get; set; }                  // zwrot
+    [ValidateNever]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
+    [ValidateNever]
+    public DateTime? BorrowedAt { get; set; }
+    [ValidateNever]
+    public DateTime? ReturnedAt { get; set; }
 
-    // Możesz wykorzystać do filtrowania archiwum lub przyszłej logiki terminów
+    [ValidateNever]
     public DateTime? DueDate { get; set; }
 }

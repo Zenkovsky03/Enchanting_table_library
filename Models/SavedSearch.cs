@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 public class SavedSearch
@@ -7,7 +8,9 @@ public class SavedSearch
 
     [Required]
     public string UserId { get; set; }
-    public ApplicationUser User { get; set; }
+
+    [ValidateNever]
+    public ApplicationUser? User { get; set; }
 
     [Required]
     [StringLength(100)]
@@ -17,5 +20,6 @@ public class SavedSearch
     [Required]
     public string QueryData { get; set; }
 
+    [ValidateNever]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

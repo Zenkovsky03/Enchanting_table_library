@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+
 public class Book
 {
     public int Id { get; set; }
@@ -32,14 +33,19 @@ public class Book
     // Kategoria (dokładnie jedna)
     [ValidateNever]
     public int CategoryId { get; set; }
+
+    [ValidateNever]
     public Category Category { get; set; }
 
     // Tagi (wiele-do-wielu)
+    [ValidateNever]
     public ICollection<BookTag> BookTags { get; set; }
 
     // Dodatkowe pliki
+    [ValidateNever]
     public ICollection<BookFile> Files { get; set; }
 
+    [ValidateNever]
     public ICollection<Loan> Loans { get; set; }
 }
 
@@ -49,6 +55,8 @@ public class BookFile
 
     [Required]
     public int BookId { get; set; }
+
+    [ValidateNever]
     public Book Book { get; set; }
 
     [Required]

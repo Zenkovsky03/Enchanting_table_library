@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 public class News
@@ -11,7 +12,7 @@ public class News
 
     [Required]
     public string Content { get; set; }
-
+    [ValidateNever]
     public DateTime PublishDate { get; set; } = DateTime.UtcNow;
 
     public bool IsPublished { get; set; } = true;
