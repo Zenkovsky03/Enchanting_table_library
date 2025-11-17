@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 public class Book
 {
     public int Id { get; set; }
@@ -30,6 +30,7 @@ public class Book
     public int StockCount { get; set; }
 
     // Kategoria (dokładnie jedna)
+    [ValidateNever]
     public int CategoryId { get; set; }
     public Category Category { get; set; }
 
