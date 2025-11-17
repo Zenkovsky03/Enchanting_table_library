@@ -2,82 +2,131 @@
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+ViewData["Title"] = "Logowanie";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
+<div class="container-fluid vh-100 p-0 overflow-hidden">
+    <div class="row h-100 g-0">
+        <!-- LEWA STRONA Z TŁEM (zdjęcie biblioteki) -->
+        <div class="d-none d-lg-block col-lg-6">
+            <div class="h-100 w-100"
+                 style="background-image: url('@Url.Content("~/images/library.png")');
+                     background-size: cover;
+                     background-position: center;">
+            </div>
+        </div>
+
+        <!-- PRAWA STRONA – FORMULARZ -->
+        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center bg-light">
+            <div class="w-100 px-3 px-md-4" style="max-width: 420px;">
+
+                <h1 class="fw-bold mb-2">Witaj z powrotem!</h1>
+                <p class="text-muted mb-3">
+                    Zaloguj się, aby zarządzać swoimi wypożyczeniami.
+                </p>
+
+                <form id="account" method="post" class="mb-2">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+
+                    <!-- E-MAIL / NAZWA UŻYTKOWNIKA -->
+                    <div class="mb-2">
+                        <label asp-for="Input.Email" class="form-label mb-1">
+                            Adres e-mail / Nazwa użytkownika
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <input asp-for="Input.Email"
+                                   class="form-control"
+                                   autocomplete="username"
+                                   aria-required="true"
+                                   placeholder="Wprowadź swój adres e-mail lub nazwę użytkownika" />
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
                     </div>
-                }
-                else
+
+                    <!-- HASŁO -->
+                    <div class="mb-1">
+                        <label asp-for="Input.Password" class="form-label mb-1">
+                            Hasło
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <input asp-for="Input.Password"
+                                   class="form-control"
+                                   autocomplete="current-password"
+                                   aria-required="true"
+                                   placeholder="Wprowadź swoje hasło" />
+                            <span class="input-group-text">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Zapamiętaj + Zapomniałem hasła -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label class="form-check-label" asp-for="Input.RememberMe">
+                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                            </label>
+                        </div>
+                        <a id="forgot-password" asp-page="./ForgotPassword"
+                           class="small text-primary text-decoration-none">
+                            Zapomniałem hasła
+                        </a>
+                    </div>
+
+                    <!-- PRZYCISK LOGOWANIA -->
+                    <div class="mb-2">
+                        <button id="login-submit"
+                                type="submit"
+                                class="btn btn-primary w-100 rounded-3">
+                            Zaloguj się
+                        </button>
+                    </div>
+                </form>
+
+                <!-- ZEWNĘTRZNE LOGOWANIA -->
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
                 {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
+                <div class="mb-3">
+                    <div class="text-center text-muted small mb-1">
+                        lub zaloguj się za pomocą
+                    </div>
+                    <form id="external-account"
+                          asp-page="./ExternalLogin"
+                          asp-route-returnUrl="@Model.ReturnUrl"
+                          method="post">
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                            @foreach (var provider in Model.ExternalLogins!)
+                            {
+                            <button type="submit"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    name="provider"
+                                    value="@provider.Name"
+                                    title="Zaloguj się przy użyciu @provider.DisplayName">
+                                @provider.DisplayName
+                            </button>
+                            }
                         </div>
                     </form>
+                </div>
                 }
-            }
-        </section>
+
+                <!-- DOLNE LINKI – kontakt / regulamin -->
+                <div class="d-flex justify-content-center gap-2 small mt-1 text-muted">
+                    <a href="#" class="text-decoration-none">Kontakt</a>
+                    <span>|</span>
+                    <a href="#" class="text-decoration-none">Regulamin</a>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+<partial name="_ValidationScriptsPartial" />
 }
