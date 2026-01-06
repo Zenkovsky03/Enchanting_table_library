@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Nav.Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Nav.News" xml:space="preserve"><value>Aktualności</value></data>
+  <data name="Nav.Books" xml:space="preserve"><value>Książki</value></data>
+  <data name="Nav.Categories" xml:space="preserve"><value>Kategorie</value></data>
+  <data name="Nav.Tags" xml:space="preserve"><value>Tagi</value></data>
+  <data name="Nav.Search" xml:space="preserve"><value>Wyszukiwanie</value></data>
+  <data name="Nav.Cart" xml:space="preserve"><value>Koszyk</value></data>
+  <data name="Nav.MyLoans" xml:space="preserve"><value>Moje wypożyczenia</value></data>
+  <data name="Nav.Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Nav.Loans" xml:space="preserve"><value>Wypożyczenia</value></data>
+  <data name="Nav.Privacy" xml:space="preserve"><value>Prywatność</value></data>
+
+  <data name="Auth.Login" xml:space="preserve"><value>Zaloguj</value></data>
+  <data name="Auth.Register" xml:space="preserve"><value>Rejestracja</value></data>
+  <data name="Auth.Logout" xml:space="preserve"><value>Wyloguj</value></data>
+  <data name="Auth.Hello" xml:space="preserve"><value>Witaj</value></data>
+
+  <data name="Ui.Theme" xml:space="preserve"><value>Motyw</value></data>
+  <data name="Ui.ThemeLight" xml:space="preserve"><value>Jasny</value></data>
+  <data name="Ui.ThemeDark" xml:space="preserve"><value>Ciemny</value></data>
+  <data name="Ui.Language" xml:space="preserve"><value>Język</value></data>
+</root>

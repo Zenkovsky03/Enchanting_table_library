@@ -2,131 +2,103 @@
 @model LoginModel
 
 @{
-ViewData["Title"] = "Logowanie";
+    ViewData["Title"] = "Logowanie";
 }
 
-<div class="container-fluid vh-100 p-0 overflow-hidden">
-    <div class="row h-100 g-0">
-        <!-- LEWA STRONA Z TŁEM (zdjęcie biblioteki) -->
-        <div class="d-none d-lg-block col-lg-6">
-            <div class="h-100 w-100"
-                 style="background-image: url('@Url.Content("~/images/library.png")');
-                     background-size: cover;
-                     background-position: center;">
-            </div>
-        </div>
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <span class="material-symbols-outlined text-primary" style="font-size: 3rem;">login</span>
+                    <h1 class="h3 fw-bold mt-2">Logowanie</h1>
+                    <p class="text-muted">Zaloguj się, aby zarządzać swoimi wypożyczeniami</p>
+                </div>
 
-        <!-- PRAWA STRONA – FORMULARZ -->
-        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center bg-light">
-            <div class="w-100 px-3 px-md-4" style="max-width: 420px;">
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                <h1 class="fw-bold mb-2">Witaj z powrotem!</h1>
-                <p class="text-muted mb-3">
-                    Zaloguj się, aby zarządzać swoimi wypożyczeniami.
-                </p>
-
-                <form id="account" method="post" class="mb-2">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
-
-                    <!-- E-MAIL / NAZWA UŻYTKOWNIKA -->
-                    <div class="mb-2">
-                        <label asp-for="Input.Email" class="form-label mb-1">
-                            Adres e-mail / Nazwa użytkownika
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label fw-medium">
+                            <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.1rem;">mail</span>
+                            Adres e-mail
                         </label>
-                        <div class="input-group input-group-sm">
-                            <input asp-for="Input.Email"
-                                   class="form-control"
-                                   autocomplete="username"
-                                   aria-required="true"
-                                   placeholder="Wprowadź swój adres e-mail lub nazwę użytkownika" />
-                            <span class="input-group-text">
-                                <i class="bi bi-person"></i>
-                            </span>
-                        </div>
+                        <input asp-for="Input.Email"
+                               class="form-control"
+                               autocomplete="username"
+                               aria-required="true"
+                               placeholder="nazwa@example.com" />
                         <span asp-validation-for="Input.Email" class="text-danger small"></span>
                     </div>
 
-                    <!-- HASŁO -->
-                    <div class="mb-1">
-                        <label asp-for="Input.Password" class="form-label mb-1">
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label fw-medium">
+                            <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.1rem;">lock</span>
                             Hasło
                         </label>
-                        <div class="input-group input-group-sm">
-                            <input asp-for="Input.Password"
-                                   class="form-control"
-                                   autocomplete="current-password"
-                                   aria-required="true"
-                                   placeholder="Wprowadź swoje hasło" />
-                            <span class="input-group-text">
-                                <i class="bi bi-eye"></i>
-                            </span>
-                        </div>
+                        <input asp-for="Input.Password"
+                               class="form-control"
+                               autocomplete="current-password"
+                               aria-required="true"
+                               placeholder="Wprowadź hasło" />
                         <span asp-validation-for="Input.Password" class="text-danger small"></span>
                     </div>
 
-                    <!-- Zapamiętaj + Zapomniałem hasła -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="form-check mb-0">
+                    <!-- Remember me & Forgot password -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
                             <input class="form-check-input" asp-for="Input.RememberMe" />
                             <label class="form-check-label" asp-for="Input.RememberMe">
-                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                Zapamiętaj mnie
                             </label>
                         </div>
-                        <a id="forgot-password" asp-page="./ForgotPassword"
-                           class="small text-primary text-decoration-none">
-                            Zapomniałem hasła
+                        <a asp-page="./ForgotPassword" class="text-decoration-none small">
+                            Zapomniałeś hasła?
                         </a>
                     </div>
 
-                    <!-- PRZYCISK LOGOWANIA -->
-                    <div class="mb-2">
-                        <button id="login-submit"
-                                type="submit"
-                                class="btn btn-primary w-100 rounded-3">
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined align-middle me-1">login</span>
                             Zaloguj się
                         </button>
                     </div>
                 </form>
 
-                <!-- ZEWNĘTRZNE LOGOWANIA -->
+                <!-- External Logins -->
                 @if ((Model.ExternalLogins?.Count ?? 0) > 0)
                 {
-                <div class="mb-3">
-                    <div class="text-center text-muted small mb-1">
-                        lub zaloguj się za pomocą
-                    </div>
-                    <form id="external-account"
-                          asp-page="./ExternalLogin"
-                          asp-route-returnUrl="@Model.ReturnUrl"
-                          method="post">
+                    <hr class="my-4" />
+                    <p class="text-center text-muted small mb-3">lub zaloguj się za pomocą</p>
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
                             @foreach (var provider in Model.ExternalLogins!)
                             {
-                            <button type="submit"
-                                    class="btn btn-outline-secondary btn-sm"
-                                    name="provider"
-                                    value="@provider.Name"
-                                    title="Zaloguj się przy użyciu @provider.DisplayName">
-                                @provider.DisplayName
-                            </button>
+                                <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name">
+                                    @provider.DisplayName
+                                </button>
                             }
                         </div>
                     </form>
-                </div>
                 }
 
-                <!-- DOLNE LINKI – kontakt / regulamin -->
-                <div class="d-flex justify-content-center gap-2 small mt-1 text-muted">
-                    <a href="#" class="text-decoration-none">Kontakt</a>
-                    <span>|</span>
-                    <a href="#" class="text-decoration-none">Regulamin</a>
+                <!-- Register Link -->
+                <hr class="my-4" />
+                <div class="text-center">
+                    <span class="text-muted">Nie masz konta?</span>
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none fw-medium ms-1">
+                        Zarejestruj się
+                    </a>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
 }

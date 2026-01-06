@@ -1,8 +1,83 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Biblioteka.Models.HomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Strona główna";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid py-4 px-4 px-lg-5">
+    <div class="mb-4">
+        <h1 class="page-heading text-primary mb-2">Aktualności i Nowości</h1>
+        <p class="page-subheading">Sprawdź co nowego w naszej bibliotece i przeczytaj najnowsze wiadomości.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: News -->
+        <div class="col-12 col-lg-8">
+            <div class="d-flex flex-column gap-4">
+                @if (Model.News.Count == 0)
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="bi bi-newspaper"></i>
+                        </div>
+                        <h3 class="fw-bold">Brak aktualności</h3>
+                        <p class="text-muted">Aktualnie nie ma opublikowanych wiadomości.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var n in Model.News)
+                    {
+                        <article class="news-card">
+                            <div class="news-image" style="background-color: #e9ecef; min-height: 200px;"></div>
+                            <div class="news-body">
+                                <h2 class="news-title">@n.Title</h2>
+                                <p class="news-date">@n.PublishDate.ToLocalTime().ToString("dd MMMM yyyy")</p>
+                                <p class="text-body mb-3">
+                                    @if (!string.IsNullOrWhiteSpace(n.Content))
+                                    {
+                                        @(n.Content.Length > 200 ? n.Content.Substring(0, 200) + "..." : n.Content)
+                                    }
+                                </p>
+                                <div class="mt-auto text-end">
+                                    <a asp-controller="News" asp-action="Details" asp-route-id="@n.Id" class="btn btn-primary">
+                                        Czytaj więcej <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Right Column: Newest Books -->
+        <div class="col-12 col-lg-4">
+            <div class="newest-books-sidebar">
+                <h2 class="sidebar-title">Ostatnio dodane</h2>
+
+                @if (Model.NewBooks.Count == 0)
+                {
+                    <p class="text-muted">Brak nowych książek.</p>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var b in Model.NewBooks)
+                        {
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@b.Id" class="newest-book-item">
+                                <div class="newest-book-cover">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                </div>
+                                <div class="book-info">
+                                    <div class="book-title">@b.Title</div>
+                                    <div class="book-author">@b.Author</div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>

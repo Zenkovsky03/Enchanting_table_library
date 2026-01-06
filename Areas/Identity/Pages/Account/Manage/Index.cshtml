@@ -1,0 +1,24 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Manage your account";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-info">@Model.StatusMessage</div>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Username</dt>
+    <dd class="col-sm-9">@Model.Username</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+</dl>
+
+<p>
+    <a class="btn btn-primary" asp-page="./ChangePassword">Change password</a>
+</p>

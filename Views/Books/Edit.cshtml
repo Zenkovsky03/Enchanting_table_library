@@ -68,6 +68,75 @@
             </div>
         </form>
     </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 fw-bold mb-3">Pliki do książki</h2>
+
+                    @if (TempData["BookFilesMessage"] is string msg && !string.IsNullOrWhiteSpace(msg))
+                    {
+                        <div class="alert alert-info">@msg</div>
+                    }
+
+                    <form asp-area="Admin" asp-controller="BookFiles" asp-action="Upload" method="post" enctype="multipart/form-data" class="row g-2 mb-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookId" value="@Model.Id" />
+                        <div class="col-12 col-md-5">
+                            <label class="form-label">Opis</label>
+                            <input class="form-control" name="description" required maxlength="200" />
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label">Plik</label>
+                            <input class="form-control" type="file" name="file" required />
+                        </div>
+                        <div class="col-12 col-md-2 d-grid">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary" type="submit">Dodaj</button>
+                        </div>
+                    </form>
+
+                    @if (Model.Files != null && Model.Files.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Opis</th>
+                                        <th>Dodano</th>
+                                        <th class="text-end">Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var f in Model.Files.OrderByDescending(x => x.UploadedAt))
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@f.Description</td>
+                                            <td class="text-muted">@f.UploadedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                            <td class="text-end">
+                                                <a class="btn btn-sm btn-outline-secondary" href="@Url.Content(f.FilePath)" target="_blank" rel="noopener">Pobierz</a>
+                                                <form class="d-inline" asp-area="Admin" asp-controller="BookFiles" asp-action="Delete" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@f.Id" />
+                                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Usunąć plik?');">Usuń</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Brak plików.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 <div>

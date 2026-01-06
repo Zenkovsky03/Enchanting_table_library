@@ -1,42 +1,53 @@
 ﻿@model News
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Title;
 }
 
-<h1>Details</h1>
+<article class="container py-4" style="max-width: 800px;">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Aktualności</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
 
-<div>
-    <h4>News</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Content)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Content)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PublishDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PublishDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsPublished)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsPublished)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+    <header class="mb-4">
+        <h1 class="h2 fw-bold mb-3">@Model.Title</h1>
+        <div class="d-flex align-items-center gap-3 text-muted">
+            <span class="d-flex align-items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size: 1.25rem;">calendar_today</span>
+                @Model.PublishDate.ToString("d MMMM yyyy")
+            </span>
+            @if (!Model.IsPublished)
+            {
+                <span class="badge bg-warning text-dark">Wersja robocza</span>
+            }
+        </div>
+    </header>
+
+    <div class="news-image-placeholder mb-4 rounded-3 d-flex align-items-center justify-content-center"
+         style="height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <span class="material-symbols-outlined text-white" style="font-size: 5rem; opacity: 0.8;">newspaper</span>
+    </div>
+
+    <div class="news-content fs-5 lh-lg">
+        @Html.Raw(Model.Content.Replace("\n", "<br />"))
+    </div>
+
+    <hr class="my-4" />
+
+    <div class="d-flex justify-content-between align-items-center">
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">
+            <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.25rem;">arrow_back</span>
+            Powrót do aktualności
+        </a>
+        @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+        {
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">
+                <span class="material-symbols-outlined align-middle me-1" style="font-size: 1.25rem;">edit</span>
+                Edytuj
+            </a>
+        }
+    </div>
+</article>

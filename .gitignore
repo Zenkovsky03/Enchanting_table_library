@@ -1,6 +1,7 @@
 ## Build results
 bin/
 obj/
+.build*/
 
 ## Visual Studio
 .vs/
@@ -25,11 +26,11 @@ artifacts/
 *.pid
 *.svclog
 
-## Rider / ReSharper 
+## Rider / ReSharper
 _ReSharper*/
 *.DotSettings.user
 
-## Node / frontend 
+## Node / frontend
 node_modules/
 dist/
 build/

@@ -1,0 +1,130 @@
+@model IEnumerable<Loan>
+
+@{
+    ViewData["Title"] = "Moje wypożyczenia";
+    var now = DateTime.UtcNow;
+}
+
+<div class="container py-4">
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="page-heading">
+            <h1>Historia Wypożyczeń</h1>
+            <p>Oto lista wszystkich książek, które wypożyczyłeś.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Index">
+            <span class="material-symbols-outlined">menu_book</span>
+            Przeglądaj książki
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined">history</span>
+            <h3>Brak wypożyczeń</h3>
+            <p>Nie masz jeszcze żadnych wypożyczeń. Zacznij przeglądać naszą kolekcję!</p>
+            <a asp-controller="Books" asp-action="Index" class="btn btn-primary mt-3">
+                <span class="material-symbols-outlined">search</span>
+                Przeglądaj książki
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Search Bar -->
+        <div class="search-bar mb-4" style="max-width: 400px;">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="searchLoans" placeholder="Szukaj po tytule lub autorze..." onkeyup="filterLoans()" />
+        </div>
+
+        <!-- Loans Table -->
+        <div class="table-responsive">
+            <table class="table table-loans" id="loansTable">
+                <thead>
+                    <tr>
+                        <th>Tytuł książki</th>
+                        <th>Data wypożyczenia</th>
+                        <th>Termin zwrotu</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in Model.OrderByDescending(l => l.CreatedAt))
+                    {
+                        var isOverdue = loan.Status == LoanStatus.Borrowed && loan.DueDate.HasValue && loan.DueDate.Value < now;
+                        <tr>
+                            <td>
+                                <div class="book-cell">
+                                    <div class="book-cover-mini">
+                                        <span class="material-symbols-outlined">menu_book</span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">@loan.Book?.Title</div>
+                                        <div class="text-muted small">@loan.Book?.Author</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-muted">@loan.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                            <td class="text-muted">
+                                @if (loan.DueDate.HasValue)
+                                {
+                                    @loan.DueDate.Value.ToLocalTime().ToString("yyyy-MM-dd")
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (loan.Status == LoanStatus.Returned)
+                                {
+                                    <span class="badge-status returned">Zwrócone</span>
+                                }
+                                else if (isOverdue)
+                                {
+                                    <span class="badge-status overdue">Przetrzymane</span>
+                                }
+                                else if (loan.Status == LoanStatus.Borrowed)
+                                {
+                                    <span class="badge-status borrowed">Wypożyczone</span>
+                                }
+                                else if (loan.Status == LoanStatus.Waiting)
+                                {
+                                    <span class="badge-status pending">W kolejce</span>
+                                }
+                                else if (loan.Status == LoanStatus.OnHold)
+                                {
+                                    <span class="badge-status onhold">Zarezerwowane</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status">@loan.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterLoans() {
+            const input = document.getElementById('searchLoans');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('loansTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const title = cells[0].textContent.toLowerCase();
+                    rows[i].style.display = title.includes(filter) ? '' : 'none';
+                }
+            }
+        }
+    </script>
+}

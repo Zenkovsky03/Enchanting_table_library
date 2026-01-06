@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,27 @@ namespace Biblioteka.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> My()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Challenge();
+            }
+
+            var loans = await _context.Loans
+                .Include(l => l.Book)
+                .Where(l => l.UserId == userId)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+
+            return View(loans);
+        }
+
         // GET: Loans
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Loans.Include(l => l.Book).Include(l => l.User);
@@ -25,6 +47,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Loans/Details/5
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -45,6 +68,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Loans/Create
+        [Authorize(Roles = "Admin,Employee")]
         public IActionResult Create()
         {
             ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title");
@@ -56,6 +80,7 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin,Employee")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,BookId,UserId,Status,BorrowedAt,ReturnedAt,DueDate")] Loan loan)
         {
@@ -74,6 +99,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Loans/Edit/5
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -95,6 +121,7 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin,Employee")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,BookId,UserId,Status,CreatedAt,BorrowedAt,ReturnedAt,DueDate")] Loan loan)
         {
@@ -129,6 +156,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Loans/Delete/5
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -150,6 +178,7 @@ namespace Biblioteka.Controllers
 
         // POST: Loans/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin,Employee")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

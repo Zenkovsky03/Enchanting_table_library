@@ -1,0 +1,197 @@
+@using Biblioteka.Areas.Admin.Controllers
+@model AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mb-4">
+    <h1 class="h3 fw-bold mb-1">Dashboard</h1>
+    <p class="text-muted mb-0">Witaj w panelu administracyjnym biblioteki.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Książki</div>
+                        <div class="h3 fw-bold mb-0">@Model.TotalBooks</div>
+                    </div>
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <span class="material-symbols-outlined">menu_book</span>
+                    </div>
+                </div>
+                <a asp-controller="Books" asp-action="Index" class="small text-decoration-none">
+                    Zarządzaj <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Użytkownicy</div>
+                        <div class="h3 fw-bold mb-0">@Model.TotalUsers</div>
+                    </div>
+                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                </div>
+                @if (Model.PendingApprovals > 0)
+                {
+                    <a asp-controller="Users" asp-action="Index" class="small text-warning text-decoration-none">
+                        @Model.PendingApprovals oczekuje na zatwierdzenie <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Users" asp-action="Index" class="small text-decoration-none">
+                        Zarządzaj <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Aktywne wypożyczenia</div>
+                        <div class="h3 fw-bold mb-0">@Model.ActiveLoans</div>
+                    </div>
+                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <span class="material-symbols-outlined">assignment</span>
+                    </div>
+                </div>
+                <a asp-controller="Loans" asp-action="Index" class="small text-decoration-none">
+                    Zobacz wszystkie (@Model.TotalLoans) <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Po terminie</div>
+                        <div class="h3 fw-bold mb-0 @(Model.OverdueLoans > 0 ? "text-danger" : "")">@Model.OverdueLoans</div>
+                    </div>
+                    <div class="rounded-circle @(Model.OverdueLoans > 0 ? "bg-danger-subtle text-danger" : "bg-secondary-subtle text-secondary") d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <span class="material-symbols-outlined">warning</span>
+                    </div>
+                </div>
+                @if (Model.OverdueLoans > 0)
+                {
+                    <a asp-controller="Loans" asp-action="Index" asp-route-overdueOnly="true" class="small text-danger text-decoration-none">
+                        Wymaga uwagi <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="small text-success">Wszystko w porządku</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Loans -->
+    <div class="col-12 col-lg-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Ostatnie wypożyczenia</h5>
+                <a asp-controller="Loans" asp-action="Index" class="btn btn-sm btn-outline-primary">Zobacz wszystkie</a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentLoans.Count == 0)
+                {
+                    <div class="text-center text-muted py-4">Brak wypożyczeń</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Książka</th>
+                                    <th>Użytkownik</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var loan in Model.RecentLoans)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@loan.Book?.Title</td>
+                                        <td class="text-muted">@loan.User?.Email</td>
+                                        <td>
+                                            @{
+                                                var badgeClass = loan.Status switch
+                                                {
+                                                    LoanStatus.InStock => "bg-secondary-subtle text-secondary",
+                                                    LoanStatus.OnHold => "bg-warning-subtle text-warning",
+                                                    LoanStatus.Borrowed => "bg-info-subtle text-info",
+                                                    LoanStatus.Returned => "bg-success-subtle text-success",
+                                                    LoanStatus.Cancelled => "bg-secondary-subtle text-secondary",
+                                                    LoanStatus.Waiting => "bg-warning-subtle text-warning",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @badgeClass">@loan.Status</span>
+                                        </td>
+                                        <td class="text-muted small">@loan.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Books -->
+    <div class="col-12 col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Ostatnio dodane książki</h5>
+                <a asp-controller="Books" asp-action="Create" class="btn btn-sm btn-primary">+ Dodaj</a>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentBooks.Count == 0)
+                {
+                    <div class="text-center text-muted py-4">Brak książek</div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var book in Model.RecentBooks)
+                        {
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="rounded bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                </div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="fw-semibold text-truncate">@book.Title</div>
+                                    <div class="text-muted small">@book.Author</div>
+                                </div>
+                                <a asp-controller="Books" asp-action="Edit" asp-route-id="@book.Id" class="btn btn-sm btn-outline-secondary">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

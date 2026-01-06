@@ -105,7 +105,6 @@ namespace Biblioteka.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsNew")
@@ -120,7 +119,6 @@ namespace Biblioteka.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TableOfContentsExcerpt")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -206,6 +204,9 @@ namespace Biblioteka.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("AvailabilityEmailSentAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("BookId")
                         .HasColumnType("INTEGER");
 
@@ -216,6 +217,12 @@ namespace Biblioteka.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("OverdueReminderSentAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("PickupReminderSentAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ReturnedAt")

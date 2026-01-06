@@ -1,0 +1,135 @@
+@using Biblioteka.Areas.Admin.Models
+@model AdminLoansIndexViewModel
+
+@{
+    ViewData["Title"] = "Wypożyczenia";
+    var now = DateTime.UtcNow;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Zarządzanie wypożyczeniami</h1>
+        <p class="text-muted mb-0">Administracja wypożyczeniami i statusami.</p>
+    </div>
+</div>
+
+@if (TempData["AdminLoansMessage"] is string msg && !string.IsNullOrWhiteSpace(msg))
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @msg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label">Szukaj</label>
+                <input class="form-control" name="q" value="@Model.Q" placeholder="Książka / ISBN / użytkownik..." />
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="" selected="@(Model.Status == null)">(wszystkie)</option>
+                    @foreach (var s in Enum.GetValues<LoanStatus>())
+                    {
+                        var sInt = (int)s;
+                        <option value="@sInt" selected="@(Model.Status == sInt)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="overdueOnly" value="true" id="overdueOnly" @(Model.OverdueOnly ? "checked" : "") />
+                    <label class="form-check-label" for="overdueOnly">Tylko po terminie</label>
+                </div>
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button class="btn btn-primary" type="submit">Filtruj</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Książka</th>
+                    <th>Użytkownik</th>
+                    <th>Status</th>
+                    <th>Utworzono</th>
+                    <th>Termin zwrotu</th>
+                    <th class="text-end">Zmień status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model.Loans)
+                {
+                    var isOverdue = loan.Status == LoanStatus.Borrowed && loan.DueDate.HasValue && loan.DueDate.Value < now;
+                    <tr class="@(isOverdue ? "table-danger" : "")">
+                        <td>
+                            <div class="fw-semibold">@loan.Book?.Title</div>
+                            <div class="text-muted small">@loan.Book?.Author</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@loan.User?.Email</div>
+                        </td>
+                        <td>
+                            @{
+                                var statusClass = loan.Status switch
+                                {
+                                    LoanStatus.InStock => "bg-secondary-subtle text-secondary",
+                                    LoanStatus.OnHold => "bg-warning-subtle text-warning",
+                                    LoanStatus.Borrowed => "bg-info-subtle text-info",
+                                    LoanStatus.Returned => "bg-success-subtle text-success",
+                                    LoanStatus.Cancelled => "bg-secondary-subtle text-secondary",
+                                    LoanStatus.Waiting => "bg-warning-subtle text-warning",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @statusClass">@loan.Status</span>
+                            @if (isOverdue)
+                            {
+                                <span class="badge bg-danger ms-1">po terminie</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@loan.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="text-muted small">
+                            @if (loan.DueDate.HasValue)
+                            {
+                                @loan.DueDate.Value.ToLocalTime().ToString("dd.MM.yyyy")
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <form asp-action="UpdateStatus" method="post" class="d-inline-flex gap-2 align-items-center">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@loan.Id" />
+                                <select class="form-select form-select-sm" name="status" style="width: 140px;" @(loan.Status == LoanStatus.Returned ? "disabled" : "")>
+                                    @foreach (var s in Enum.GetValues<LoanStatus>())
+                                    {
+                                        <option value="@s" selected="@(loan.Status == s)">@s</option>
+                                    }
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary" type="submit" @(loan.Status == LoanStatus.Returned ? "disabled" : "")>Zapisz</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Loans.Any())
+    {
+        <div class="card-body text-center text-muted">
+            <span class="material-symbols-outlined d-block mb-2" style="font-size: 3rem;">assignment</span>
+            Brak wypożyczeń dla wybranych filtrów.
+        </div>
+    }
+</div>

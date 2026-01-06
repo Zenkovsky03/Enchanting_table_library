@@ -1,174 +1,160 @@
-﻿@model IEnumerable<Book>
+﻿@model Biblioteka.Models.BooksBrowseViewModel
 
 @{
-ViewData["Title"] = "Książki";
-
-// Prosta lista kategorii wyciągnięta z modeli – tylko do wyświetlenia po lewej
-var categories = Model
-.Select(b => b.Category?.Name ?? "Brak kategorii")
-.Distinct()
-.OrderBy(n => n)
-.ToList();
+    ViewData["Title"] = "Przeglądaj książki";
 }
 
-<div class="d-flex min-vh-100 bg-light">
-    <!-- LEWE MENU (sidebar jak na makiecie) -->
-    <aside class="d-none d-md-flex flex-column justify-content-between bg-white border-end px-3 py-4" style="width: 260px;">
-        <div>
-            <div class="d-flex align-items-center gap-2 mb-4">
-                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                    <span class="fw-bold">BR</span>
-                </div>
-                <div class="d-flex flex-column">
-                    <span class="fw-semibold">Admin Panel</span>
-                    <small class="text-muted">Book Rental System</small>
-                </div>
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Content Area -->
+        <div class="col-12 col-lg-8 col-xl-9">
+            <!-- Page Heading -->
+            <div class="page-heading mb-4">
+                <h1>Przeglądaj naszą kolekcję</h1>
+                <p>Znajdź swoją następną ulubioną książkę do wypożyczenia.</p>
             </div>
 
-            <nav class="nav flex-column gap-1">
-                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a class="nav-link d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Books" asp-action="Index">
-                    <i class="bi bi-book"></i> Books
-                </a>
-                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Categories" asp-action="Index">
-                    <i class="bi bi-grid"></i> Kategorie
-                </a>
-                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Rentals" asp-action="Index">
-                    <i class="bi bi-journal-arrow-down"></i> Rentals
-                </a>
-                <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-controller="Users" asp-action="Index">
-                    <i class="bi bi-people"></i> Users
-                </a>
-            </nav>
-        </div>
-
-        <div class="border-top pt-3">
-            <a class="nav-link d-flex align-items-center gap-2 text-muted" href="#">
-                <i class="bi bi-gear"></i> Settings
-            </a>
-            <a class="nav-link d-flex align-items-center gap-2 text-muted" asp-area="Identity" asp-page="/Account/Logout">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
-        </div>
-    </aside>
-
-    <!-- PRAWA STRONA (główna zawartość) -->
-    <main class="flex-grow-1 p-3 p-md-4 p-lg-5">
-        <!-- Nagłówek strony -->
-        <header class="mb-4">
-            <h1 class="h3 fw-bold mb-1">Zarządzanie książkami</h1>
-            <p class="text-muted mb-0">Przeglądaj, dodawaj i edytuj książki w systemie.</p>
-        </header>
-
-        <!-- Główna karta: lewa kolumna z kategoriami, prawa z listą książek -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4 p-lg-5">
-                <div class="row g-4">
-
-                    <!-- LEWA KOLUMNA – Kategorie książek (jak na screenie) -->
-                    <div class="col-12 col-lg-4 border-end">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2 class="h6 fw-semibold mb-0">Kategorie książek</h2>
-                            <a asp-controller="Categories" asp-action="Create" class="btn btn-primary btn-sm">
-                                + Nowa
-                            </a>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text" class="form-control border-0 bg-light" placeholder="Szukaj kategorii..." />
-                            </div>
-                        </div>
-
-                        <div class="list-group small">
-                            @foreach (var cat in categories)
-                            {
-                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <span>@cat</span>
-                                <i class="bi bi-chevron-down small text-muted"></i>
-                            </button>
-                            }
-                        </div>
+            <!-- Search & Filters -->
+            <form method="get" class="mb-4">
+                <div class="d-flex flex-column flex-sm-row gap-3 mb-3">
+                    <div class="search-bar flex-grow-1">
+                        <span class="material-symbols-outlined">search</span>
+                        <input type="text" name="q" value="@Model.Q" placeholder="Szukaj po tytule lub autorze" />
                     </div>
-
-                    <!-- PRAWA KOLUMNA – Lista książek (twoja logika Index) -->
-                    <div class="col-12 col-lg-8">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h2 class="h6 fw-semibold mb-1">
-                                    Książki w systemie
-                                    <span class="text-muted">(@Model.Count())</span>
-                                </h2>
-                                <p class="text-muted small mb-0">
-                                    Lista wszystkich książek – możesz je edytować, zobaczyć szczegóły lub usunąć.
-                                </p>
-                            </div>
-                            <a asp-action="Create" class="btn btn-primary btn-sm">
-                                + Dodaj książkę
-                            </a>
-                        </div>
-
-                        <!-- TABELA – zachowuje całą twoją logikę -->
-                        <div class="table-responsive rounded-3 border bg-white">
-                            <table class="table align-middle mb-0">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>@Html.DisplayNameFor(model => model.Title)</th>
-                                    <th>@Html.DisplayNameFor(model => model.Author)</th>
-                                    <th>@Html.DisplayNameFor(model => model.Isbn)</th>
-                                    <th>@Html.DisplayNameFor(model => model.AddedDate)</th>
-                                    <th>@Html.DisplayNameFor(model => model.Category)</th>
-                                    <th class="text-end">Akcje</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach (var item in Model)
+                    <div class="d-flex align-items-center gap-2 flex-grow-1 flex-sm-grow-0" style="min-width: 200px;">
+                        <div class="filter-select flex-grow-1">
+                            <span class="material-symbols-outlined">sell</span>
+                            <select name="tagId">
+                                <option value="">Wszystkie tagi</option>
+                                @foreach (var t in Model.Tags)
                                 {
-                                <tr>
-                                    <td class="fw-semibold">
-                                        @Html.DisplayFor(modelItem => item.Title)
-                                        @if (item.IsNew)
-                                        {
-                                        <span class="badge bg-primary-subtle text-primary ms-1">Nowość</span>
-                                        }
-                                    </td>
-                                    <td>@Html.DisplayFor(modelItem => item.Author)</td>
-                                    <td class="text-muted small">
-                                        @Html.DisplayFor(modelItem => item.Isbn)
-                                    </td>
-                                    <td class="text-muted small">
-                                        @Html.DisplayFor(modelItem => item.AddedDate)
-                                    </td>
-                                    <td>
-                                        @Html.DisplayFor(modelItem => item.Category.Name)
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                    <option value="@t.Id" selected="@(Model.TagId == t.Id)">@t.Name</option>
                                 }
-                                </tbody>
-                            </table>
+                            </select>
                         </div>
-
+                        <button class="btn btn-primary" type="submit">
+                            <span class="material-symbols-outlined">filter_list</span>
+                        </button>
                     </div>
                 </div>
+
+                @if (Model.CategoryId.HasValue)
+                {
+                    <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+                }
+            </form>
+
+            <!-- Category Chips -->
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a class="filter-chip @(Model.CategoryId == null ? "active" : "")"
+                   asp-action="Index" asp-route-q="@Model.Q" asp-route-tagId="@Model.TagId">Wszystkie</a>
+                @foreach (var c in Model.Categories)
+                {
+                    <a class="filter-chip @(Model.CategoryId == c.Id ? "active" : "")"
+                       asp-action="Index" asp-route-categoryId="@c.Id" asp-route-q="@Model.Q" asp-route-tagId="@Model.TagId">@c.Name</a>
+                }
+            </div>
+
+            <!-- Book Grid -->
+            @if (Model.Books.Count == 0)
+            {
+                <div class="empty-state">
+                    <span class="material-symbols-outlined">search_off</span>
+                    <h3>Brak wyników</h3>
+                    <p>Nie znaleziono książek spełniających kryteria wyszukiwania.</p>
+                </div>
+            }
+            else
+            {
+                <div class="book-grid">
+                    @foreach (var book in Model.Books)
+                    {
+                        <div class="book-card">
+                            <a asp-action="Details" asp-route-id="@book.Id" class="book-cover">
+                                <div class="book-cover-placeholder">
+                                    <span class="material-symbols-outlined">menu_book</span>
+                                </div>
+                            </a>
+                            <div class="book-info">
+                                <a asp-action="Details" asp-route-id="@book.Id" class="book-title">@book.Title</a>
+                                <div class="book-author">@book.Author</div>
+                                <div class="book-stock">
+                                    @if (book.StockCount > 0)
+                                    {
+                                        <span class="badge-status available">Dostępne: @book.StockCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status unavailable">Niedostępne</span>
+                                    }
+                                </div>
+                                <div class="book-actions">
+                                    @if (book.StockCount > 0)
+                                    {
+                                        <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline w-100">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@book.Id" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                                                Do koszyka
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="Books" asp-action="JoinQueue" method="post" class="d-inline w-100">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@book.Id" />
+                                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                                <span class="material-symbols-outlined">queue</span>
+                                                Do kolejki
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Cart Sidebar -->
+        <div class="col-12 col-lg-4 col-xl-3 mt-4 mt-lg-0">
+            <div class="cart-sidebar">
+                <div class="cart-header">
+                    <h3>
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        Twój koszyk
+                    </h3>
+                    <span class="cart-count">@Model.CartCount</span>
+                </div>
+
+                @if (Model.CartCount > 0)
+                {
+                    <p class="text-center text-muted mb-3">Masz @Model.CartCount książek w koszyku</p>
+
+                    <div class="cart-footer">
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary w-100 mb-2">
+                            <span class="material-symbols-outlined">shopping_cart</span>
+                            Zobacz koszyk
+                        </a>
+                        <a asp-controller="Cart" asp-action="Checkout" class="btn btn-primary w-100">
+                            <span class="material-symbols-outlined">shopping_cart_checkout</span>
+                            Złóż zamówienie
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="cart-empty">
+                        <span class="material-symbols-outlined">shopping_cart_off</span>
+                        <p>Twój koszyk jest pusty</p>
+                        <small>Zacznij przeglądać książki!</small>
+                    </div>
+                }
             </div>
         </div>
-    </main>
+    </div>
 </div>

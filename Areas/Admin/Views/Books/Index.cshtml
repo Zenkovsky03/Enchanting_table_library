@@ -1,0 +1,91 @@
+@model IEnumerable<Book>
+
+@{
+    ViewData["Title"] = "Książki";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Zarządzanie książkami</h1>
+        <p class="text-muted mb-0">Przeglądaj, dodawaj i edytuj książki w systemie.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <span class="material-symbols-outlined me-1" style="font-size: 1.25rem; vertical-align: -4px;">add</span>
+        Dodaj książkę
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+        <span class="fw-semibold">Książki w systemie (@Model.Count())</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tytuł</th>
+                    <th>Autor</th>
+                    <th>ISBN</th>
+                    <th>Kategoria</th>
+                    <th class="text-center">Stan</th>
+                    <th>Data dodania</th>
+                    <th class="text-end">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="fw-semibold">@item.Title</div>
+                        @if (item.IsNew)
+                        {
+                            <span class="badge bg-success-subtle text-success">Nowość</span>
+                        }
+                    </td>
+                    <td>@item.Author</td>
+                    <td class="text-muted small font-monospace">@item.Isbn</td>
+                    <td>
+                        @if (item.Category != null)
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary">@item.Category.Name</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        @if (item.StockCount > 0)
+                        {
+                            <span class="badge bg-success-subtle text-success">@item.StockCount</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger">0</span>
+                        }
+                    </td>
+                    <td class="text-muted small">@item.AddedDate.ToString("dd.MM.yyyy")</td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-secondary" title="Szczegóły">
+                                <span class="material-symbols-outlined" style="font-size: 1rem;">visibility</span>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Edytuj">
+                                <span class="material-symbols-outlined" style="font-size: 1rem;">edit</span>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Usuń">
+                                <span class="material-symbols-outlined" style="font-size: 1rem;">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center text-muted">
+            <span class="material-symbols-outlined d-block mb-2" style="font-size: 3rem;">library_books</span>
+            Brak książek w systemie.
+            <a asp-action="Create">Dodaj pierwszą książkę</a>
+        </div>
+    }
+</div>

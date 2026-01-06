@@ -6,22 +6,68 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Biblioteka.Data;
+using Microsoft.AspNetCore.Authorization;
+using Biblioteka.Infrastructure;
+using Biblioteka.Models;
+using Microsoft.AspNetCore.Identity;
+using Biblioteka.Services;
 namespace Biblioteka.Controllers
 {
     public class BooksController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly LoanQueueService _loanQueue;
 
-        public BooksController(ApplicationDbContext context)
+        public BooksController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, LoanQueueService loanQueue)
         {
             _context = context;
+            _userManager = userManager;
+            _loanQueue = loanQueue;
         }
 
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? q = null, int? categoryId = null, int? tagId = null)
         {
-            var applicationDbContext = _context.Books.Include(b => b.Category);
-            return View(await applicationDbContext.ToListAsync());
+            var booksQuery = _context.Books
+                .Include(b => b.Category)
+                .Include(b => b.BookTags)
+                    .ThenInclude(bt => bt.Tag)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                booksQuery = booksQuery.Where(b =>
+                    (b.Title != null && b.Title.Contains(term)) ||
+                    (b.Author != null && b.Author.Contains(term)) ||
+                    (b.Isbn != null && b.Isbn.Contains(term)));
+            }
+
+            if (categoryId.HasValue)
+            {
+                booksQuery = booksQuery.Where(b => b.CategoryId == categoryId.Value);
+            }
+
+            if (tagId.HasValue)
+            {
+                booksQuery = booksQuery.Where(b => b.BookTags.Any(bt => bt.TagId == tagId.Value));
+            }
+
+            var model = new BooksBrowseViewModel
+            {
+                Q = q,
+                CategoryId = categoryId,
+                TagId = tagId,
+                Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync(),
+                Tags = await _context.Tags.OrderBy(t => t.Name).ToListAsync(),
+                Books = await booksQuery.OrderBy(b => b.Title).ToListAsync(),
+            };
+
+            var cart = HttpContext.Session.GetJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+            model.CartCount = cart.Sum(x => x.Quantity);
+
+            return View(model);
         }
 
         // GET: Books/Details/5
@@ -36,6 +82,7 @@ namespace Biblioteka.Controllers
                 .Include(b => b.Category)
                 .Include(b => b.BookTags)
                     .ThenInclude(bt => bt.Tag)
+                .Include(b => b.Files)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {
@@ -45,7 +92,64 @@ namespace Biblioteka.Controllers
             return View(book);
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> JoinQueue(int id)
+        {
+            var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (!user.IsActive)
+            {
+                return Forbid();
+            }
+
+            var isReader = await _userManager.IsInRoleAsync(user, "Reader");
+            if (isReader && !user.IsApproved)
+            {
+                return Forbid();
+            }
+
+            var alreadyHas = await _context.Loans.AnyAsync(l =>
+                l.BookId == id
+                && l.UserId == user.Id
+                && (l.Status == LoanStatus.Waiting || l.Status == LoanStatus.OnHold || l.Status == LoanStatus.Borrowed));
+
+            if (alreadyHas)
+            {
+                TempData["BooksMessage"] = "Masz już tę książkę w kolejce lub wypożyczoną.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            _context.Loans.Add(new Loan
+            {
+                BookId = id,
+                UserId = user.Id,
+                Status = LoanStatus.Waiting,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _context.SaveChangesAsync();
+
+            // If a copy is available right now, promote immediately.
+            await _loanQueue.PromoteWaitingLoansForBookAsync(id);
+
+            TempData["BooksMessage"] = "Dodano do kolejki.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         // GET: Books/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
@@ -58,6 +162,7 @@ namespace Biblioteka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book, int[] selectedTags)
         {
             if (ModelState.IsValid)
@@ -82,6 +187,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Books/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -107,6 +213,7 @@ namespace Biblioteka.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Isbn,Description,TableOfContentsExcerpt,AddedDate,IsNew,StockCount,CategoryId")] Book book, int[] selectedTags)
         {
             if (id != book.Id)
@@ -152,6 +259,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Books/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -173,6 +281,7 @@ namespace Biblioteka.Controllers
         // POST: Books/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var book = await _context.Books.FindAsync(id);

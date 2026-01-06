@@ -9,7 +9,8 @@ public enum LoanStatus
     OnHold = 1,
     Borrowed = 2,
     Returned = 3,
-    Cancelled = 4  
+    Cancelled = 4,
+    Waiting = 5
 }
 
 public class Loan
@@ -31,7 +32,7 @@ public class Loan
     public LoanStatus Status { get; set; } = LoanStatus.InStock;
 
     [ValidateNever]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [ValidateNever]
     public DateTime? BorrowedAt { get; set; }
     [ValidateNever]
@@ -39,4 +40,13 @@ public class Loan
 
     [ValidateNever]
     public DateTime? DueDate { get; set; }
+
+    [ValidateNever]
+    public DateTime? OverdueReminderSentAt { get; set; }
+
+    [ValidateNever]
+    public DateTime? PickupReminderSentAt { get; set; }
+
+    [ValidateNever]
+    public DateTime? AvailabilityEmailSentAt { get; set; }
 }

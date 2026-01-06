@@ -1,0 +1,137 @@
+@model List<Biblioteka.Areas.Admin.Controllers.UsersController.UserRowVm>
+
+@{
+    ViewData["Title"] = "Użytkownicy";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Zarządzanie użytkownikami</h1>
+        <p class="text-muted mb-0">Zatwierdzaj konta czytelników, blokuj/odblokowuj i nadawaj role.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form class="row g-2 align-items-end" method="get">
+            <div class="col-12 col-md-6">
+                <label class="form-label">Szukaj użytkownika</label>
+                <input class="form-control" type="text" name="q" value="@Context.Request.Query["q"]" placeholder="Email lub nazwa użytkownika..." />
+            </div>
+            <div class="col-12 col-md-auto d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Szukaj</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Wyczyść</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status konta</th>
+                    <th>Zatwierdzone</th>
+                    <th class="text-end">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">@u.Email</td>
+                    <td>
+                        @if (u.Roles.Count == 0)
+                        {
+                            <span class="text-muted">(brak)</span>
+                        }
+                        else
+                        {
+                            @foreach (var r in u.Roles)
+                            {
+                                var roleClass = r switch
+                                {
+                                    "Admin" => "bg-danger-subtle text-danger",
+                                    "Employee" => "bg-primary-subtle text-primary",
+                                    "Reader" => "bg-secondary-subtle text-secondary",
+                                    _ => "bg-secondary-subtle text-secondary"
+                                };
+                                <span class="badge @roleClass me-1">@r</span>
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span class="badge bg-success-subtle text-success">Aktywne</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger">Zablokowane</span>
+                        }
+                    </td>
+                    <td>
+                        @if (u.IsApproved)
+                        {
+                            <span class="badge bg-success-subtle text-success">Tak</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning-subtle text-warning">Nie</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                            @if (!u.IsApproved && u.IsReader)
+                            {
+                                <form asp-action="Approve" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <span class="material-symbols-outlined" style="font-size: 1rem;">check</span>
+                                        Zatwierdź
+                                    </button>
+                                </form>
+                                <form asp-action="Reject" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Odrzuć</button>
+                                </form>
+                            }
+
+                            @if (!u.IsAdmin)
+                            {
+                                <form asp-action="ToggleActive" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        @(u.IsActive ? "Zablokuj" : "Odblokuj")
+                                    </button>
+                                </form>
+
+                                <form asp-action="ToggleEmployee" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        @(u.IsEmployee ? "Usuń Employee" : "Nadaj Employee")
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center text-muted">
+            <span class="material-symbols-outlined d-block mb-2" style="font-size: 3rem;">group</span>
+            Brak użytkowników spełniających kryteria.
+        </div>
+    }
+</div>

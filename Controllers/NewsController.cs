@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,19 @@ namespace Biblioteka.Controllers
         // GET: News
         public async Task<IActionResult> Index()
         {
-            return View(await _context.News.ToListAsync());
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.News.AsQueryable();
+            if (!isAdmin)
+            {
+                query = query.Where(n => n.IsPublished);
+            }
+
+            var list = await query
+                .OrderByDescending(n => n.PublishDate)
+                .ToListAsync();
+
+            return View(list);
         }
 
         // GET: News/Details/5
@@ -31,9 +44,13 @@ namespace Biblioteka.Controllers
                 return NotFound();
             }
 
-            var news = await _context.News
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var news = await _context.News.FirstOrDefaultAsync(m => m.Id == id);
             if (news == null)
+            {
+                return NotFound();
+            }
+
+            if (!news.IsPublished && !User.IsInRole("Admin"))
             {
                 return NotFound();
             }
@@ -42,6 +59,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: News/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -51,6 +69,7 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,Content,PublishDate,IsPublished")] News news)
         {
@@ -64,6 +83,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: News/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -83,6 +103,7 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,PublishDate,IsPublished")] News news)
         {
@@ -115,6 +136,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: News/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -134,6 +156,7 @@ namespace Biblioteka.Controllers
 
         // POST: News/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

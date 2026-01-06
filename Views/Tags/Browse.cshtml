@@ -1,0 +1,48 @@
+@model IEnumerable<Tag>
+
+@{
+    ViewData["Title"] = "Tagi";
+}
+
+<div class="container py-4">
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="page-heading">
+            <h1>Tagi</h1>
+            <p>Przeglądaj książki po tagach.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Index">
+            <span class="material-symbols-outlined">menu_book</span>
+            Wszystkie książki
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined">label_off</span>
+            <h3>Brak tagów</h3>
+            <p>Nie dodano jeszcze żadnych tagów.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="tags-grid">
+                    @foreach (var t in Model)
+                    {
+                        <a class="tag-badge" asp-controller="Books" asp-action="Index" asp-route-tagId="@t.Id">
+                            <span class="material-symbols-outlined" style="font-size: 1em;">label</span>
+                            @t.Name
+                            @if (t.BookTags?.Count > 0)
+                            {
+                                <span class="tag-count">(@t.BookTags.Count)</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

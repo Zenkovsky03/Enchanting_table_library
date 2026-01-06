@@ -1,0 +1,98 @@
+@model Biblioteka.Models.CartIndexViewModel
+
+@{
+    ViewData["Title"] = "Koszyk";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 fw-bold mb-0">Koszyk</h1>
+        <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Index">Kontynuuj przeglądanie</a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@err.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    @if (Model.Lines.Count == 0)
+    {
+        <div class="alert alert-info mb-0">Koszyk jest pusty.</div>
+    }
+    else
+    {
+        <div class="table-responsive rounded-3 border bg-white mb-3">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Książka</th>
+                        <th class="text-center" style="width: 150px;">Ilość</th>
+                        <th class="text-center" style="width: 120px;">Stan</th>
+                        <th class="text-end" style="width: 240px;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in Model.Lines)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@line.Title</div>
+                                <div class="text-muted small">@line.Author</div>
+                            </td>
+                            <td class="text-center">@line.Quantity</td>
+                            <td class="text-center">
+                                @if (line.StockCount > 0)
+                                {
+                                    <span class="badge bg-success-subtle text-success">@line.StockCount</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger">0</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <form asp-action="Decrement" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@line.BookId" />
+                                        <button type="submit" class="btn btn-outline-secondary">-</button>
+                                    </form>
+                                    <form asp-action="Add" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@line.BookId" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="btn btn-outline-secondary">+</button>
+                                    </form>
+                                    <form asp-action="Remove" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@line.BookId" />
+                                        <button type="submit" class="btn btn-outline-danger">Usuń</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted">Łącznie sztuk: <span class="fw-semibold">@Model.TotalItems</span></div>
+            <div class="d-flex gap-2">
+                <form asp-action="Clear" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">Wyczyść koszyk</button>
+                </form>
+                <form asp-action="Checkout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary">Złóż zamówienie</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>

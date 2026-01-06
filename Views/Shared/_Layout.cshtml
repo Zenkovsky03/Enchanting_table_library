@@ -1,5 +1,27 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Globalization
+@using Microsoft.Extensions.Localization
+@using Biblioteka
+@inject IStringLocalizer<SharedResource> L
+
+@{
+    var uiCulture = CultureInfo.CurrentUICulture;
+    var currentLang = uiCulture.Name;
+
+    // Build clean returnUrl without lang param for theme switching
+    var queryParams = Context.Request.Query
+        .Where(q => !q.Key.Equals("lang", StringComparison.OrdinalIgnoreCase))
+        .Select(q => $"{q.Key}={q.Value}");
+    var cleanQuery = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+    var returnUrl = Context.Request.Path + cleanQuery;
+
+    var theme = Context.Request.Cookies["ui-theme"];
+    theme = string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
+    var nextTheme = theme == "dark" ? "light" : "dark";
+    var nextCulture = string.Equals(currentLang, "en-US", StringComparison.OrdinalIgnoreCase) ? "pl-PL" : "en-US";
+}
+
+<!DOCTYPE html>
+<html lang="@uiCulture.TwoLetterISOLanguageName" data-bs-theme="@theme">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,6 +36,12 @@
     />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
+    <!-- Google Fonts: Manrope + Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
 
     <!-- Twoje style -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -24,7 +52,7 @@
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3 bg-body">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Biblioteka</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -34,13 +62,61 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">@L["Nav.News"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-area="" asp-controller="Books" asp-action="Index">@L["Nav.Books"]</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Categories" asp-action="Tree">@L["Nav.Categories"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Tags" asp-action="Browse">@L["Nav.Tags"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Search" asp-action="Advanced">@L["Nav.Search"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">@L["Nav.Cart"]</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Loans" asp-action="My">@L["Nav.MyLoans"]</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="Home" asp-action="Index">@L["Nav.Admin"]</a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Employee"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-controller="Loans" asp-action="Index">@L["Nav.Loans"]</a>
+                            </li>
+                        }
                     </ul>
-                    <partial name="_LoginPartial" />
+
+                    <div class="d-flex align-items-center gap-2">
+                        <form asp-area="" asp-controller="Preferences" asp-action="SetTheme" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="theme" value="@nextTheme" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                @L["Ui.Theme"]: @(theme == "dark" ? L["Ui.ThemeDark"] : L["Ui.ThemeLight"])
+                            </button>
+                        </form>
+
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                onclick="switchLanguage('@nextCulture')">
+                            @L["Ui.Language"]: @(string.Equals(currentLang, "en-US", StringComparison.OrdinalIgnoreCase) ? "EN" : "PL")
+                        </button>
+
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
@@ -53,7 +129,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - Biblioteka - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Biblioteka - <a asp-area="" asp-controller="Home" asp-action="Privacy">@L["Nav.Privacy"]</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

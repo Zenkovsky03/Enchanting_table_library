@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,21 @@ namespace Biblioteka.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Tree()
+        {
+            var categories = await _context.Categories
+                .Include(c => c.Books)
+                .AsNoTracking()
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            return View(categories);
+        }
+
         // GET: Categories
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Categories.Include(c => c.ParentCategory);
@@ -25,6 +40,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Categories/Details/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -44,6 +60,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Categories/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["ParentCategoryId"] = new SelectList(_context.Categories, "Id", "Name");
@@ -54,6 +71,8 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,ParentCategoryId")] Category category)
         {
             if (ModelState.IsValid)
@@ -67,6 +86,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Categories/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +107,7 @@ namespace Biblioteka.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ParentCategoryId")] Category category)
         {
@@ -120,6 +141,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Categories/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -140,6 +162,7 @@ namespace Biblioteka.Controllers
 
         // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

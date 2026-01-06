@@ -1,238 +1,232 @@
 ﻿@model Book
 
 @{
-ViewData["Title"] = Model.Title ?? "Szczegóły książki";
-
-bool isAvailable = Model.StockCount > 0;
-var year = Model.AddedDate.Year;
+    ViewData["Title"] = Model.Title ?? "Szczegóły książki";
+    bool isAvailable = Model.StockCount > 0;
+    var year = Model.AddedDate.Year;
 }
 
 <div class="container py-4">
+    @if (TempData["BooksMessage"] is string booksMsg && !string.IsNullOrWhiteSpace(booksMsg))
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @booksMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-    <!-- BREADCRUMB (jak na screenie: Home / Books / Tytuł) -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb small">
-            <li class="breadcrumb-item">
-                <a asp-controller="Home" asp-action="Index">Home</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a asp-controller="Books" asp-action="Index">Books</a>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">
-                @Model.Title
-            </li>
-        </ol>
+    <!-- Breadcrumbs -->
+    <nav class="mb-4">
+        <div class="d-flex flex-wrap gap-2 text-muted small">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Strona główna</a>
+            <span>/</span>
+            <a asp-controller="Books" asp-action="Index" class="text-decoration-none">Książki</a>
+            <span>/</span>
+            <span class="text-body">@Model.Title</span>
+        </div>
     </nav>
 
-    <div class="row g-4">
-        <!-- LEWA KOLUMNA – "okładka" + przycisk wypożyczenia -->
-        <div class="col-12 col-lg-3">
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body p-0">
-                    <!-- Prosta "okładka" z gradientem i tytułem / autorem -->
-                    <div class="d-flex flex-column justify-content-end p-3"
-                         style="
-                             height: 360px;
-                             background: radial-gradient(circle at top left, #4f46e5, #0f172a);
-                             color: #e5e7eb;
-                         ">
-                        <div class="small text-uppercase text-muted mb-2">
-                            Book Rental
-                        </div>
-                        <h2 class="h5 fw-bold mb-1">
-                            @Model.Title
-                        </h2>
-                        <div class="small text-light">
-                            by @Model.Author
+    <div class="row g-4 g-lg-5">
+        <!-- Left Column - Cover & Actions -->
+        <div class="col-12 col-lg-4 col-xl-3">
+            <!-- Book Cover -->
+            <div class="book-detail-cover mb-4">
+                <div class="book-cover-placeholder-large">
+                    <div class="placeholder-content">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        <div class="placeholder-text">
+                            <span class="small text-uppercase opacity-75">Book Rental</span>
+                            <h4 class="mb-1">@Model.Title</h4>
+                            <span class="small">by @Model.Author</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Przyciski pod okładką -->
-            <div class="d-grid gap-2 mb-2">
-                <button class="btn btn-primary btn-lg"
-                        type="button"
-                        @(isAvailable ? "" : "disabled")>
-                    Wypożycz
-                </button>
-            </div>
-            <div class="small">
-                Status:
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2 mb-3">
                 @if (isAvailable)
                 {
-                <span class="text-success fw-semibold">Dostępna</span>
+                    <form asp-controller="Cart" asp-action="Add" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="quantity" value="1" />
+                        <button class="btn btn-primary btn-lg w-100" type="submit">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                            Dodaj do koszyka
+                        </button>
+                    </form>
                 }
                 else
                 {
-                <span class="text-danger fw-semibold">Niedostępna</span>
+                    <form asp-controller="Books" asp-action="JoinQueue" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button class="btn btn-outline-primary btn-lg w-100" type="submit">
+                            <span class="material-symbols-outlined">queue</span>
+                            Dołącz do kolejki
+                        </button>
+                    </form>
                 }
             </div>
+
+            <!-- Status -->
+            <p class="text-center mb-0">
+                Status:
+                @if (isAvailable)
+                {
+                    <span class="badge-status available">Dostępna (@Model.StockCount)</span>
+                }
+                else
+                {
+                    <span class="badge-status unavailable">Niedostępna</span>
+                }
+            </p>
         </div>
 
-        <!-- PRAWA KOLUMNA – tytuł + szczegóły -->
-        <div class="col-12 col-lg-9">
-            <!-- Title card -->
-            <div class="card border-0 shadow-sm mb-3">
+        <!-- Right Column - Details -->
+        <div class="col-12 col-lg-8 col-xl-9">
+            <!-- Title Card -->
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h1 class="h3 fw-bold mb-1">@Model.Title</h1>
-                    <p class="mb-0">
-                        by
-                        <span class="fw-semibold text-primary">
-                            @Model.Author
-                        </span>
+                    <h1 class="h2 fw-bold mb-2">@Model.Title</h1>
+                    <p class="mb-0 fs-5">
+                        by <span class="text-primary fw-semibold">@Model.Author</span>
                     </p>
-
                     @if (Model.Category != null)
                     {
-                    <p class="mt-2 mb-0 small text-muted">
-                        Kategoria:
-                        <span class="fw-semibold">@Model.Category.Name</span>
-                    </p>
+                        <p class="mt-2 mb-0 text-muted">
+                            <span class="material-symbols-outlined" style="font-size: 1em; vertical-align: -2px;">folder</span>
+                            @Model.Category.Name
+                        </p>
                     }
-
                     @if (Model.BookTags != null && Model.BookTags.Any())
                     {
-                    <div class="mt-2">
-                        <span class="small text-muted me-1">Tagi:</span>
-                        @foreach (var tag in Model.BookTags.Select(t => t.Tag?.Name).Where(n => !string.IsNullOrEmpty(n)))
-                        {
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary me-1">@tag</span>
-                        }
-                    </div>
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            @foreach (var tag in Model.BookTags.Select(t => t.Tag?.Name).Where(n => !string.IsNullOrEmpty(n)))
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary">@tag</span>
+                            }
+                        </div>
                     }
                 </div>
             </div>
 
-            <!-- Key details card -->
-            <div class="card border-0 shadow-sm mb-4">
+            <!-- Key Details Card -->
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h2 class="h6 fw-semibold mb-3">Key Details</h2>
-
-                    <div class="row small">
-                        <div class="col-12 col-md-4 mb-2">
-                            <div class="text-muted">ISBN</div>
+                    <h3 class="h5 fw-bold mb-3 pb-3 border-bottom">Szczegóły</h3>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted small">ISBN</div>
                             <div class="fw-semibold">@Model.Isbn</div>
                         </div>
-                        <div class="col-12 col-md-4 mb-2">
-                            <div class="text-muted">Rok dodania</div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted small">Rok dodania</div>
                             <div class="fw-semibold">@year</div>
                         </div>
-                        <div class="col-12 col-md-4 mb-2">
-                            <div class="text-muted">Egzemplarze na stanie</div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted small">Na stanie</div>
                             <div class="fw-semibold">@Model.StockCount</div>
                         </div>
-                        <div class="col-12 col-md-4 mb-2">
-                            <div class="text-muted">Data dodania</div>
-                            <div class="fw-semibold">
-                                @Model.AddedDate.ToString("yyyy-MM-dd")
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4 mb-2">
-                            <div class="text-muted">Nowość</div>
-                            <div class="fw-semibold">
-                                @(Model.IsNew ? "Tak" : "Nie")
-                            </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-muted small">Nowość</div>
+                            <div class="fw-semibold">@(Model.IsNew ? "Tak" : "Nie")</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tabs: Opis / Spis treści / Pliki -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header border-0 bg-white pb-0">
-                    <ul class="nav nav-tabs border-0">
-                        <li class="nav-item">
-                            <button class="nav-link active"
-                                    id="tab-desc-tab"
-                                    data-bs-toggle="tab"
-                                    data-bs-target="#tab-desc"
-                                    type="button"
-                                    role="tab">
+            <!-- Tabs Card -->
+            <div class="card">
+                <div class="card-header bg-transparent border-bottom-0 pb-0">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-desc-tab" data-bs-toggle="tab" data-bs-target="#tab-desc" type="button" role="tab">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1.1em; vertical-align: -2px;">description</span>
                                 Opis
                             </button>
                         </li>
-                        <li class="nav-item">
-                            <button class="nav-link"
-                                    id="tab-toc-tab"
-                                    data-bs-toggle="tab"
-                                    data-bs-target="#tab-toc"
-                                    type="button"
-                                    role="tab">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-toc-tab" data-bs-toggle="tab" data-bs-target="#tab-toc" type="button" role="tab">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1.1em; vertical-align: -2px;">list</span>
                                 Spis treści
                             </button>
                         </li>
-                        <li class="nav-item">
-                            <button class="nav-link"
-                                    id="tab-files-tab"
-                                    data-bs-toggle="tab"
-                                    data-bs-target="#tab-files"
-                                    type="button"
-                                    role="tab">
-                                Pliki do pobrania
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-files-tab" data-bs-toggle="tab" data-bs-target="#tab-files" type="button" role="tab">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1.1em; vertical-align: -2px;">download</span>
+                                Pliki
                             </button>
                         </li>
                     </ul>
                 </div>
-
                 <div class="card-body">
                     <div class="tab-content">
-                        <!-- OPIS -->
-                        <div class="tab-pane fade show active"
-                             id="tab-desc"
-                             role="tabpanel"
-                             aria-labelledby="tab-desc-tab">
+                        <!-- Description Tab -->
+                        <div class="tab-pane fade show active" id="tab-desc" role="tabpanel">
                             @if (!string.IsNullOrWhiteSpace(Model.Description))
                             {
-                            <p class="mb-0">
-                                @Model.Description
-                            </p>
+                                <div class="prose">@Model.Description</div>
                             }
                             else
                             {
-                            <p class="text-muted mb-0">
-                                Brak opisu dla tej książki.
-                            </p>
+                                <p class="text-muted mb-0">Brak opisu dla tej książki.</p>
                             }
                         </div>
 
-                        <!-- SPIS TREŚCI -->
-                        <div class="tab-pane fade"
-                             id="tab-toc"
-                             role="tabpanel"
-                             aria-labelledby="tab-toc-tab">
+                        <!-- TOC Tab -->
+                        <div class="tab-pane fade" id="tab-toc" role="tabpanel">
                             @if (!string.IsNullOrWhiteSpace(Model.TableOfContentsExcerpt))
                             {
-                            <pre class="mb-0 small bg-light p-3 rounded-3"
-                                 style="white-space: pre-wrap;">@Model.TableOfContentsExcerpt</pre>
+                                <pre class="mb-0 bg-light p-3 rounded-3" style="white-space: pre-wrap; font-size: 0.875rem;">@Model.TableOfContentsExcerpt</pre>
                             }
                             else
                             {
-                            <p class="text-muted mb-0">
-                                Brak wprowadzonego spisu treści.
-                            </p>
+                                <p class="text-muted mb-0">Brak wprowadzonego spisu treści.</p>
                             }
                         </div>
 
-                        <!-- PLIKI DO POBRANIA – placeholder, bo nie ma pól w modelu -->
-                        <div class="tab-pane fade"
-                             id="tab-files"
-                             role="tabpanel"
-                             aria-labelledby="tab-files-tab">
-                            <p class="text-muted mb-0">
-                                Brak powiązanych plików do pobrania dla tej książki.
-                            </p>
+                        <!-- Files Tab -->
+                        <div class="tab-pane fade" id="tab-files" role="tabpanel">
+                            @if (Model.Files != null && Model.Files.Any())
+                            {
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var f in Model.Files.OrderByDescending(x => x.UploadedAt))
+                                    {
+                                        <a class="file-download-item" href="@Url.Content(f.FilePath)" target="_blank" rel="noopener">
+                                            <div class="file-icon">
+                                                <span class="material-symbols-outlined">@(f.FilePath.EndsWith(".pdf") ? "picture_as_pdf" : "folder_zip")</span>
+                                            </div>
+                                            <div class="file-info">
+                                                <div class="file-name">@f.Description</div>
+                                                <div class="file-meta">@f.UploadedAt.ToString("yyyy-MM-dd")</div>
+                                            </div>
+                                            <span class="material-symbols-outlined">download</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">Brak powiązanych plików do pobrania dla tej książki.</p>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- PRZYCISKI AKCJI -->
+            <!-- Action Buttons -->
             <div class="mt-4 d-flex gap-2">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
-                    Edytuj
-                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-area="Admin" asp-controller="Books" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                        <span class="material-symbols-outlined">edit</span>
+                        Edytuj
+                    </a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary">
+                    <span class="material-symbols-outlined">arrow_back</span>
                     Powrót do listy
                 </a>
             </div>

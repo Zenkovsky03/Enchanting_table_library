@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Transparent-background variant for flexible placement.
+  Notes for print: convert to PDF/EPS and CMYK in your DTP tool.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-label="SAUNA U RYSIA logo">
+  <defs>
+    <style>
+      .gold { fill:#b88a3a; }
+      .gold-stroke { stroke:#b88a3a; }
+      .white { fill:#f5f5f5; }
+      .ink { fill:#111111; }
+
+      .line { fill:none; stroke-width:8; stroke-linecap:round; stroke-linejoin:round; }
+
+      .title {
+        font-family: "Georgia", "Times New Roman", serif;
+        font-weight: 700;
+        letter-spacing: 10px;
+      }
+    </style>
+  </defs>
+
+  <!-- Decorative horizontal lines -->
+  <g opacity="0.95">
+    <path class="line gold-stroke" d="M160 720 H440" />
+    <path class="line gold-stroke" d="M760 720 H1040" />
+    <circle cx="600" cy="720" r="6" class="gold" />
+  </g>
+
+  <!-- Lynx head mark (centered) -->
+  <g transform="translate(600 420)">
+    <path class="gold" d="
+      M 0 -220
+      C 70 -220, 130 -190, 170 -135
+      C 205 -85, 225 -20, 215 50
+      C 205 120, 150 180, 80 205
+      C 45 217, 15 220, 0 220
+      C -15 220, -45 217, -80 205
+      C -150 180, -205 120, -215 50
+      C -225 -20, -205 -85, -170 -135
+      C -130 -190, -70 -220, 0 -220
+      Z"/>
+
+    <g>
+      <path class="gold" d="M -140 -150 L -250 -265 L -240 -120 C -210 -135, -180 -145, -140 -150 Z"/>
+      <path class="white" d="M -160 -155 L -235 -238 L -232 -135 C -210 -145, -190 -150, -160 -155 Z" opacity="0.95"/>
+      <path class="gold" d="M 140 -150 L 250 -265 L 240 -120 C 210 -135, 180 -145, 140 -150 Z"/>
+      <path class="white" d="M 160 -155 L 235 -238 L 232 -135 C 210 -145, 190 -150, 160 -155 Z" opacity="0.95"/>
+    </g>
+
+    <path class="white" d="
+      M 0 -140
+      C 60 -140, 110 -120, 145 -85
+      C 180 -50, 195 -5, 185 45
+      C 170 120, 105 160, 0 168
+      C -105 160, -170 120, -185 45
+      C -195 -5, -180 -50, -145 -85
+      C -110 -120, -60 -140, 0 -140
+      Z"/>
+
+    <path class="white" d="M -165 35 C -190 55, -205 85, -200 110 C -170 105, -150 90, -135 70 C -145 55, -155 45, -165 35 Z"/>
+    <path class="white" d="M 165 35 C 190 55, 205 85, 200 110 C 170 105, 150 90, 135 70 C 145 55, 155 45, 165 35 Z"/>
+
+    <path class="ink" d="M 0 52 C 18 52, 34 66, 34 82 C 34 100, 18 112, 0 112 C -18 112, -34 100, -34 82 C -34 66, -18 52, 0 52 Z"/>
+    <path class="line" stroke="#111111" d="M 0 112 V 135" />
+    <path class="line" stroke="#111111" d="M 0 135 C -28 152, -58 155, -86 144" />
+    <path class="line" stroke="#111111" d="M 0 135 C 28 152, 58 155, 86 144" />
+
+    <path class="ink" d="M -95 -30 C -65 -50, -35 -50, -10 -30 C -35 -10, -65 -10, -95 -30 Z"/>
+    <path class="ink" d="M 95 -30 C 65 -50, 35 -50, 10 -30 C 35 -10, 65 -10, 95 -30 Z"/>
+    <circle cx="-55" cy="-32" r="6" class="white" opacity="0.9"/>
+    <circle cx="55" cy="-32" r="6" class="white" opacity="0.9"/>
+
+    <path class="line gold-stroke" d="M -120 -52 C -88 -78, -45 -84, -8 -64" stroke-width="10" />
+    <path class="line gold-stroke" d="M 120 -52 C 88 -78, 45 -84, 8 -64" stroke-width="10" />
+
+    <g class="gold-stroke" opacity="0.95">
+      <path class="line" d="M -110 92 H -235" stroke-width="7" />
+      <path class="line" d="M -104 118 H -250" stroke-width="7" />
+      <path class="line" d="M -96 144 H -230" stroke-width="7" />
+
+      <path class="line" d="M 110 92 H 235" stroke-width="7" />
+      <path class="line" d="M 104 118 H 250" stroke-width="7" />
+      <path class="line" d="M 96 144 H 230" stroke-width="7" />
+    </g>
+
+    <path class="gold" opacity="0.35" d="M 0 -120 C 20 -110, 30 -90, 22 -70 C 12 -45, -12 -45, -22 -70 C -30 -90, -20 -110, 0 -120 Z"/>
+  </g>
+
+  <!-- Title text -->
+  <g transform="translate(600 840)" text-anchor="middle">
+    <text class="title" x="0" y="0" font-size="86" fill="#b88a3a">SAUNA U RYSIA</text>
+    <path class="line gold-stroke" d="M -340 48 H 340" stroke-width="6" opacity="0.9"/>
+  </g>
+</svg>

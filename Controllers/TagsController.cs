@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,13 +19,26 @@ namespace Biblioteka.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Browse()
+        {
+            var tags = await _context.Tags
+                .OrderBy(t => t.Name)
+                .ToListAsync();
+
+            return View(tags);
+        }
+
         // GET: Tags
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Tags.ToListAsync());
         }
 
         // GET: Tags/Details/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -36,6 +50,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Tags/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -43,6 +58,7 @@ namespace Biblioteka.Controllers
 
         // POST: Tags/Create
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Tag tag)
         {
@@ -56,6 +72,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Tags/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -67,6 +84,7 @@ namespace Biblioteka.Controllers
 
         // POST: Tags/Edit/5
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Tag tag)
         {
@@ -90,6 +108,7 @@ namespace Biblioteka.Controllers
         }
 
         // GET: Tags/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -102,6 +121,7 @@ namespace Biblioteka.Controllers
 
         // POST: Tags/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

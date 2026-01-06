@@ -1,0 +1,18 @@
+@model Biblioteka.Models.CheckoutResultViewModel
+
+@{
+    ViewData["Title"] = "Zamówienie złożone";
+}
+
+<div class="container py-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h1 class="h4 fw-bold mb-2">Zamówienie złożone</h1>
+            <p class="mb-3">Utworzono wypożyczenia: <span class="fw-semibold">@Model.CreatedLoans</span></p>
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary" asp-controller="Loans" asp-action="My">Moje wypożyczenia</a>
+                <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Index">Wróć do książek</a>
+            </div>
+        </div>
+    </div>
+</div>

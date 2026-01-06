@@ -1,6 +1,10 @@
 using Biblioteka.Data;
+using Biblioteka.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +18,34 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
-        options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+    })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+
+builder.Services.AddScoped<LoanQueueService>();
+
+builder.Services.Configure<LoanNotificationsOptions>(builder.Configuration.GetSection("LoanNotifications"));
+builder.Services.AddHostedService<LoanNotificationsHostedService>();
+
+builder.Services.AddLocalization();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromHours(8);
+});
+
+builder.Services
+    .AddControllersWithViews()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization();
 
 var app = builder.Build();
 
@@ -39,8 +67,29 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+var supportedCultures = new[] { new CultureInfo("pl-PL"), new CultureInfo("en-US") };
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("pl-PL"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures,
+    RequestCultureProviders = new IRequestCultureProvider[]
+    {
+        new LangQueryStringRequestCultureProvider(),   // ?lang=en-US
+    }
+});
+
+app.UseSession();
+
 app.UseAuthentication();   // warto dodać, skoro używasz Identity
 app.UseAuthorization();
+
+await IdentitySeed.SeedAsync(app);
+await DataSeeder.SeedAsync(app);
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

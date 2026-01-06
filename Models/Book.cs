@@ -18,10 +18,10 @@ public class Book
     public string Isbn { get; set; }
 
     // Opis książki
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     // Wyciąg ze spisu treści
-    public string TableOfContentsExcerpt { get; set; }
+    public string? TableOfContentsExcerpt { get; set; }
 
     // Nowości na stronie głównej
     public DateTime AddedDate { get; set; } = DateTime.UtcNow;

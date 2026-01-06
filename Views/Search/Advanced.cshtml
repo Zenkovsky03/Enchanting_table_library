@@ -1,0 +1,193 @@
+@model Biblioteka.Models.AdvancedSearchViewModel
+
+@{
+    ViewData["Title"] = "Zaawansowane wyszukiwanie";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Zaawansowane wyszukiwanie książek</h1>
+            <p class="text-muted mb-0">Wyszukuj po tytule, autorze, ISBN oraz filtruj po kategoriach i tagach.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="Cart" asp-action="Index">
+            <i class="bi bi-basket"></i>
+            Koszyk
+            @if (Model.CartCount > 0)
+            {
+                <span class="badge bg-primary ms-2">@Model.CartCount</span>
+            }
+        </a>
+    </div>
+
+    <form method="get" class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Tryb wyszukiwania -->
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-4 p-3 bg-body-secondary rounded-3">
+                        <span class="fw-semibold">Tryb wyszukiwania:</span>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="mode" id="modeAll" value="All" @(Model.Query.Mode == Biblioteka.Models.SearchMode.All ? "checked" : "") />
+                            <label class="form-check-label" for="modeAll">
+                                <span class="fw-medium">Wszystkie kryteria</span>
+                                <span class="text-muted small">(AND)</span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="mode" id="modeAny" value="Any" @(Model.Query.Mode == Biblioteka.Models.SearchMode.Any ? "checked" : "") />
+                            <label class="form-check-label" for="modeAny">
+                                <span class="fw-medium">Dowolne kryterium</span>
+                                <span class="text-muted small">(OR)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pola wyszukiwania -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label">Tytuł zawiera</label>
+                    <input class="form-control" type="text" name="title" value="@Model.Query.Title" placeholder="Wpisz tytuł" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label">Autor zawiera</label>
+                    <input class="form-control" type="text" name="author" value="@Model.Query.Author" placeholder="Wpisz autora" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label">ISBN zawiera</label>
+                    <input class="form-control" type="text" name="isbn" value="@Model.Query.Isbn" placeholder="Wpisz ISBN" />
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Kategoria</label>
+                    <select class="form-select" name="categoryId">
+                        <option value="">(wszystkie)</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.Id" selected="@(Model.Query.CategoryId == c.Id)">@c.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <div class="mb-2 fw-semibold">Tagi</div>
+                    <div class="d-flex flex-wrap gap-2" id="tagsContainer">
+                        @foreach (var t in Model.Tags)
+                        {
+                            var isChecked = Model.Query.TagIds != null && Model.Query.TagIds.Contains(t.Id);
+                            var checkboxId = $"tag_{t.Id}";
+                            <input type="checkbox" class="btn-check" id="@checkboxId" name="tagIds" value="@t.Id" @(isChecked ? "checked" : "") autocomplete="off" />
+                            <label class="btn btn-sm btn-outline-primary" for="@checkboxId">@t.Name</label>
+                        }
+                    </div>
+                </div>
+
+                <!-- Sekcja wykluczeń -->
+                <div class="col-12">
+                    <div class="border rounded-3 p-3">
+                        <a class="text-decoration-none d-flex align-items-center gap-2" data-bs-toggle="collapse" href="#excludeSection" role="button" aria-expanded="@(Model.Query.HasExclusions ? "true" : "false")">
+                            <span class="material-symbols-outlined" style="font-size: 1.25rem;">block</span>
+                            <span class="fw-semibold">Wyklucz wyniki zawierające...</span>
+                            <span class="material-symbols-outlined ms-auto" style="font-size: 1.25rem;">expand_more</span>
+                        </a>
+                        <div class="collapse @(Model.Query.HasExclusions ? "show" : "")" id="excludeSection">
+                            <div class="row g-3 mt-2">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-danger-emphasis">Tytuł NIE zawiera</label>
+                                    <input class="form-control" type="text" name="excludeTitle" value="@Model.Query.ExcludeTitle" placeholder="Wyklucz tytuły zawierające..." />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-danger-emphasis">Autor NIE zawiera</label>
+                                    <input class="form-control" type="text" name="excludeAuthor" value="@Model.Query.ExcludeAuthor" placeholder="Wyklucz autorów zawierających..." />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <a class="btn btn-outline-secondary" asp-controller="Search" asp-action="Advanced">Wyczyść</a>
+                    <button class="btn btn-primary" type="submit">Szukaj</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.HasSearched)
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 fw-bold mb-0">Wyniki (@Model.Results.Count)</h2>
+
+            <form asp-controller="SavedSearches" asp-action="Save" method="post" class="d-flex gap-2 align-items-center">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="queryData" value="@Context.Request.QueryString.Value?.TrimStart('?')" />
+                <input class="form-control form-control-sm" style="width: 240px;" type="text" name="name" placeholder="Nazwa wyszukiwania" required />
+                <button class="btn btn-sm btn-outline-primary" type="submit">Zapisz wyszukiwanie</button>
+            </form>
+        </div>
+
+        @if (Model.Results.Count == 0)
+        {
+            <div class="alert alert-info mb-0">Brak wyników.</div>
+        }
+        else
+        {
+            <div class="book-grid">
+                @foreach (var book in Model.Results)
+                {
+                    <div class="book-card">
+                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="book-cover">
+                            <div class="book-cover-placeholder">
+                                <span class="material-symbols-outlined">menu_book</span>
+                            </div>
+                        </a>
+                        <div class="book-info">
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="book-title">@book.Title</a>
+                            <div class="book-author">@book.Author</div>
+                            <div class="book-stock">
+                                @if (book.StockCount > 0)
+                                {
+                                    <span class="badge-status available">Dostępne: @book.StockCount</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status unavailable">Niedostępne</span>
+                                }
+                            </div>
+                            <div class="book-actions">
+                                @if (book.StockCount > 0)
+                                {
+                                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline w-100">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@book.Id" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                                            Do koszyka
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Books" asp-action="JoinQueue" method="post" class="d-inline w-100">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@book.Id" />
+                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                            <span class="material-symbols-outlined">queue</span>
+                                            Do kolejki
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+}

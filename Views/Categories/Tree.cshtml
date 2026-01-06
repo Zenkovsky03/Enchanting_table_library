@@ -1,0 +1,101 @@
+@model IEnumerable<Category>
+
+@{
+    ViewData["Title"] = "Kategorie";
+    var categories = Model.ToList();
+    var roots = categories
+        .Where(c => c.ParentCategoryId == null)
+        .OrderBy(c => c.Name)
+        .ToList();
+
+    var childrenByParentId = categories
+        .Where(c => c.ParentCategoryId != null)
+        .GroupBy(c => c.ParentCategoryId!.Value)
+        .ToDictionary(g => g.Key, g => g.OrderBy(x => x.Name).ToList());
+
+    // Słownik przechowujący sumę książek dla każdej kategorii (włącznie z podkategoriami)
+    var bookCountCache = new Dictionary<int, int>();
+    
+    int GetTotalBookCount(Category cat)
+    {
+        if (bookCountCache.TryGetValue(cat.Id, out var cached))
+            return cached;
+        
+        // Książki bezpośrednio w tej kategorii
+        var count = cat.Books?.Count ?? 0;
+        
+        // Dodaj książki z podkategorii
+        if (childrenByParentId.TryGetValue(cat.Id, out var kids))
+        {
+            foreach (var child in kids)
+            {
+                count += GetTotalBookCount(child);
+            }
+        }
+        
+        bookCountCache[cat.Id] = count;
+        return count;
+    }
+
+    var rows = new List<(Category Cat, int Depth, int TotalBooks)>();
+
+    void Visit(Category node, int depth)
+    {
+        rows.Add((node, depth, GetTotalBookCount(node)));
+        if (childrenByParentId.TryGetValue(node.Id, out var kids))
+        {
+            foreach (var k in kids)
+            {
+                Visit(k, depth + 1);
+            }
+        }
+    }
+
+    foreach (var r in roots)
+    {
+        Visit(r, 0);
+    }
+}
+
+<div class="container py-4">
+    <!-- Page Heading -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="page-heading">
+            <h1>Kategorie</h1>
+            <p>Przeglądaj książki po drzewie kategorii.</p>
+        </div>
+        <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Index">
+            <span class="material-symbols-outlined">menu_book</span>
+            Wszystkie książki
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            @if (rows.Count == 0)
+            {
+                <div class="empty-state">
+                    <span class="material-symbols-outlined">folder_off</span>
+                    <h3>Brak kategorii</h3>
+                    <p>Nie dodano jeszcze żadnych kategorii.</p>
+                </div>
+            }
+            else
+            {
+                <ul class="category-tree">
+                    @foreach (var row in rows)
+                    {
+                        var link = Url.Action("Index", "Books", new { categoryId = row.Cat.Id });
+                        <li style="padding-left: @(row.Depth * 1.25)rem;">
+                            <a href="@link">
+                                <span class="material-symbols-outlined">@(row.Depth == 0 ? "folder" : "subdirectory_arrow_right")</span>
+                                <span>@row.Cat.Name</span>
+                                <span class="category-count">@row.TotalBooks</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
